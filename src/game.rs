@@ -16,13 +16,14 @@ use crate::direction::Direction;
 const MAX_INTERVAL: u16 = 700;
 const MIN_INTERVAL: u16 = 200;
 const MAX_SPEED: u16 = 20;
+const NUM_FOOD: u8 = 3;
 
 pub struct Game {
     stdout: Stdout,
     original_terminal_size: (u16, u16),
     width: u16,
     height: u16,
-    food: Option<Point>,
+    food: Vec<Point>,
     snake: Snake,
     speed: u16,
     score: u16,
@@ -36,7 +37,7 @@ impl Game {
             original_terminal_size,
             width,
             height,
-            food: None,
+            food: vec![],
             snake: Snake::new(
                 Point::new(width / 2, height / 2),
                 3,
@@ -84,14 +85,18 @@ impl Game {
             } else {
                 self.snake.slither();
 
-                if let Some(food_point) = self.food {
-                    if self.snake.get_head_point() == food_point {
-                        self.snake.grow();
-                        self.place_food();
-                        self.score += 1;
-
-                        if self.score % ((self.width * self.height) / MAX_SPEED) == 0 {
-                            self.speed += 1;
+                if self.food.len() > 0 {
+                    for (i,food_point) in self.food.clone().iter().enumerate() {
+                        if self.snake.get_head_point() == *food_point {
+                            self.snake.grow();
+                            self.food.remove(i);
+                            self.place_food();
+                            self.score += 1;
+    
+                            if self.score % ((self.width * self.height) / MAX_SPEED) == 0 {
+                                self.speed += 1;
+                            }
+                            break;
                         }
                     }
                 }
@@ -106,13 +111,12 @@ impl Game {
     }
 
     fn place_food(&mut self) {
-        loop {
+        while self.food.len() as u8 != NUM_FOOD {
             let random_x = rand::thread_rng().gen_range(0, self.width);
             let random_y = rand::thread_rng().gen_range(0, self.height);
             let point = Point::new(random_x, random_y);
             if !self.snake.contains_point(&point) {
-                self.food = Some(point);
-                break;
+                self.food.insert(0, point);
             }
         }
     }
