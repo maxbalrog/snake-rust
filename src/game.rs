@@ -115,7 +115,7 @@ impl Game {
             let random_x = rand::thread_rng().gen_range(0, self.width);
             let random_y = rand::thread_rng().gen_range(0, self.height);
             let point = Point::new(random_x, random_y);
-            if !self.snake.contains_point(&point) {
+            if !self.snake.contains_point(&point) && !self.food.contains(&point) {
                 self.food.insert(0, point);
             }
         }
